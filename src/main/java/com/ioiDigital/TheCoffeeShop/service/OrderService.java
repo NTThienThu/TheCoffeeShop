@@ -1,23 +1,31 @@
 package com.ioiDigital.TheCoffeeShop.service;
 
 import com.ioiDigital.TheCoffeeShop.dto.request.OrderCreateDTO;
+import com.ioiDigital.TheCoffeeShop.dto.response.MessageResponse;
+import com.ioiDigital.TheCoffeeShop.dto.response.OrderResponseDTO;
 import com.ioiDigital.TheCoffeeShop.entity.Order;
+
+import java.util.List;
 
 public interface OrderService {
     Order getOrderByIdAndQueueId(Long orderId, Long queueId);
-
-    void saveOrder(Order order);
+    
 
     Order getOrderByIdAndCustomerId(Long orderId, Long customerId);
 
-    // Get the queue position of an order based on the creation time and status
     int getQueuePosition(Long orderId);
 
-    // Get the estimated waiting time of an order based on the queue position and average processing time
     int getEstimatedWaitingTime(Long orderId);
 
-    // Get an order by id
     Order getOrderById(Long id);
 
-    Object createOrder(OrderCreateDTO orderCreateDTO, int shopId);
+    OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO);
+
+    List<Order> findAllByQueueId(Long id);
+
+    MessageResponse cancelOrder(Long orderId, Long customerId);
+
+    Object completedOrder(Long orderId);
+
+    Object serveCustomer(Long orderId, Long queueId);
 }

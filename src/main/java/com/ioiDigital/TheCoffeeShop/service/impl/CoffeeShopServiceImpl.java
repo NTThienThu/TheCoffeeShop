@@ -12,7 +12,9 @@ import com.ioiDigital.TheCoffeeShop.entity.User;
 import com.ioiDigital.TheCoffeeShop.mapper.CoffeeShopMapper;
 import com.ioiDigital.TheCoffeeShop.repository.AdminRepository;
 import com.ioiDigital.TheCoffeeShop.repository.CoffeeShopRepository;
+import com.ioiDigital.TheCoffeeShop.repository.QueueRepository;
 import com.ioiDigital.TheCoffeeShop.repository.UserRepository;
+import com.ioiDigital.TheCoffeeShop.service.AdminService;
 import com.ioiDigital.TheCoffeeShop.service.CoffeeShopService;
 import com.ioiDigital.TheCoffeeShop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,13 @@ public class CoffeeShopServiceImpl implements CoffeeShopService {
     private AdminRepository adminRepository;
 
     @Autowired
+    private AdminService adminService;
+
+    @Autowired
     private UserService userService;
+
+    @Autowired
+    private QueueRepository queueRepository;
 
     // set schedule for update status endDate once a day (0h00p)
 //    @PostConstruct
@@ -68,6 +76,7 @@ public class CoffeeShopServiceImpl implements CoffeeShopService {
             queue.setCoffeeShop(coffeeShop);
 
             coffeeShopRepository.save(coffeeShop);
+            queueRepository.save(queue);
 
             return this.coffeeShopMapper.toDTO(coffeeShop);
         }
@@ -77,14 +86,15 @@ public class CoffeeShopServiceImpl implements CoffeeShopService {
     //Not allow update name
     @Override
     public CoffeeShopResponseDTO updateCoffeeShop(CoffeeShopCreateDTO coffeeShopCreateDTO) {
-        User user = this.userService.getCurrentLoginUser();
-        Admin admin = adminRepository.findByUserId(user.getId());
+
+        Admin admin = adminService.getCurrentLogInAdmin();
         CoffeeShop coffeeShop = coffeeShopRepository.findById(admin.getCoffeeShop().getId());
         coffeeShop.setLocation(coffeeShopCreateDTO.getLocation());
         coffeeShop.setContactDetails(coffeeShopCreateDTO.getContactDetails());
         coffeeShop.setOpeningTime(coffeeShopCreateDTO.getOpeningTime());
         coffeeShop.setClosingTime(coffeeShopCreateDTO.getClosingTime());
         coffeeShopRepository.save(coffeeShop);
+
         return this.coffeeShopMapper.toDTO(coffeeShop);
     }
 

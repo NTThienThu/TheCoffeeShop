@@ -21,4 +21,6 @@ public interface MenuItemMapper {
     List<MenuItem> toMenuItemList(List<MenuItemCreationDTO> menuItemCreationDTOS);
 
     List<MenuItemResponseDTO> toListDTO(List<MenuItem> menuItems);
+
+
 }

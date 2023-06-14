@@ -23,8 +23,5 @@ public class Queue {
     @JoinColumn(name = "shop_id")
     private CoffeeShop coffeeShop;
 
-    @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders;
-
     private int maxQueueSize;
 }

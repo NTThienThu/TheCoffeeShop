@@ -12,9 +12,6 @@ public interface CustomerService {
 
     Customer getCurrentLogInCustomer();
 
-    // Get a customer by id from the database
     Customer getCustomerById(Long id);
 
-    // Save a customer to the database
-    void saveCustomer(Customer customer);
 }

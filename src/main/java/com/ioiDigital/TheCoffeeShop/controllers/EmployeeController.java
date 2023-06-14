@@ -6,6 +6,7 @@ import com.ioiDigital.TheCoffeeShop.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,12 +15,13 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
     @PostMapping
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity createEmployee(@RequestBody EmployeeRegisterDTO employeeRegisterDTO) {
         return new ResponseEntity<>(this.employeeService.registerEmployee(employeeRegisterDTO), HttpStatus.CREATED);
     }
 
     @PutMapping
-    //@PreAuthorize("hasAuthority('Global_Admin')")
+    @PreAuthorize("hasRole('Employee')")
     public ResponseEntity updateEmployee(@RequestBody EmployeeRegisterDTO employeeRegisterDTO) {
         return new ResponseEntity<>(this.employeeService.updateEmployeeInfo(employeeRegisterDTO), HttpStatus.CREATED);
     }
