@@ -37,19 +37,16 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private QueueRepository queueRepository;
 
-    // Save an order to the database
     @Override
     public void saveOrder(Order order) {
         orderRepository.save(order);
     }
 
-    // Get an order by id and customer id from the database
     @Override
     public Order getOrderByIdAndCustomerId(Long orderId, Long customerId) {
         return orderRepository.findByIdAndCustomerId(orderId, customerId).orElse(null);
     }
 
-    // Get the queue position of an order based on the creation time and status
     @Override
     public int getQueuePosition(Long orderId) {
         // Get the order by id
@@ -66,7 +63,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // Get the estimated waiting time of an order based on the queue position and average processing time
     @Override
     public int getEstimatedWaitingTime(Long orderId) {
         // Get the queue position of the order
@@ -89,17 +85,16 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // Get an order by id and queue id from the database
     @Override
     public Order getOrderByIdAndQueueId(Long orderId, Long queueId) {
         return orderRepository.findByIdAndQueueId(orderId, queueId).orElse(null);
     }
 
-    // Get an order by id from the database
     @Override
     public Order getOrderById(Long id) {
         return orderRepository.findById(id).orElse(null);
     }
+
 
     @Override
     public OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO, int shopId) {
