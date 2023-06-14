@@ -1,6 +1,6 @@
 package com.ioiDigital.TheCoffeeShop.service.impl;
 
-import com.ioiDigital.TheCoffeeShop.Specification.CoffeeShopSpecification;
+import com.ioiDigital.TheCoffeeShop.specification.CoffeeShopSpecification;
 import com.ioiDigital.TheCoffeeShop.dto.request.CoffeeShopCreateDTO;
 import com.ioiDigital.TheCoffeeShop.dto.request.SearchCoffeeShopDTO;
 import com.ioiDigital.TheCoffeeShop.dto.response.CoffeeShopResponseDTO;

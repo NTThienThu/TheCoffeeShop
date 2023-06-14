@@ -1,7 +1,6 @@
-package com.ioiDigital.TheCoffeeShop.Specification;
+package com.ioiDigital.TheCoffeeShop.specification;
 
 import com.ioiDigital.TheCoffeeShop.dto.request.SearchCoffeeShopDTO;
-import com.ioiDigital.TheCoffeeShop.dto.response.CoffeeShopResponseDTO;
 import com.ioiDigital.TheCoffeeShop.entity.CoffeeShop;
 import org.springframework.data.jpa.domain.Specification;
 
