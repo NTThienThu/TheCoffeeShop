@@ -58,22 +58,12 @@ public class MenuItemServiceImpl implements MenuItemService {
         return listMenuItemResponseDTO;
     }
 
-    //    @Override
-//    public ListMenuItemResponseDTO updateMenu(ListMenuItemCreateDTO listMenuItemCreateDTO) {
-//        Admin admin = adminService.getCurrentAdmin();
-//        List<MenuItem> menuItems = this.menuItemMapper.toMenuItemList(listMenuItemCreateDTO.getMenuItemCreationDTOS());
-//        for (MenuItem menuItem: menuItems){
-//            if ()
-//        }
-//        return null;
-//    }
     @Override
     public ListMenuItemResponseDTO updateMenu(List<MenuItemCreationDTO> menuItemDTOs) {
         Admin admin = adminService.getCurrentLogInAdmin();
         CoffeeShop coffeeShop = coffeeShopRepository.findById(admin.getCoffeeShop().getId());
         List<MenuItem> existingMenuItems = menuItemRepository.findAllByCoffeeShop_Id(coffeeShop.getId());
 
-        // Xóa các MenuItem không có trong danh sách mới khỏi cơ sở dữ liệu
         for (MenuItem existingMenuItem : existingMenuItems) {
             boolean menuItemExists = menuItemDTOs.stream()
                     .anyMatch(menuItemDTO -> menuItemDTO.getItemName().equals(existingMenuItem.getItemName()));
@@ -82,19 +72,18 @@ public class MenuItemServiceImpl implements MenuItemService {
             }
         }
 
-        // Cập nhật hoặc tạo mới các MenuItem trong danh sách mới
         for (MenuItemCreationDTO menuItemDTO : menuItemDTOs) {
             Optional<MenuItem> existingMenuItem = existingMenuItems.stream()
                     .filter(item -> item.getItemName().equals(menuItemDTO.getItemName()))
                     .findFirst();
 
             if (existingMenuItem.isPresent()) {
-                // MenuItem đã tồn tại, cập nhật giá
+
                 MenuItem menuItem = existingMenuItem.get();
                 menuItem.setPrice(menuItemDTO.getPrice());
                 menuItemRepository.save(menuItem);
             } else {
-                // MenuItem chưa tồn tại, tạo mới
+
                 MenuItem newMenuItem = new MenuItem();
                 newMenuItem.setCoffeeShop(coffeeShop);
                 newMenuItem.setItemName(menuItemDTO.getItemName());

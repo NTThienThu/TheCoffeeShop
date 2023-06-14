@@ -49,7 +49,7 @@ public class AdminServiceImpl implements AdminService {
             return adminMapper.toDTO(admin);
 
         }
-        throw new IllegalArgumentException("The coffee shop had admin");
+        throw new RuntimeException("The coffee shop had admin");
 
     }
 

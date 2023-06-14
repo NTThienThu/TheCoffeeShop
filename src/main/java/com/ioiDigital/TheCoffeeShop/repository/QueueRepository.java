@@ -12,6 +12,6 @@ public interface QueueRepository extends JpaRepository<Queue, Long> {
     // Find a queue by id
     Optional<Queue> findById(long id);
 
-    Queue findByShop_Id(long id);
+    Optional<Queue> findByCoffeeShop_Id(long id);
 
 }

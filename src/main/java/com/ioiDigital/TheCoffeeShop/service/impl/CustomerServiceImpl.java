@@ -58,15 +58,9 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new RuntimeException("Not found customer by this token"));
     }
 
-    // Get a customer by id from the database
     @Override
     public Customer getCustomerById(Long id) {
         return customerRepository.findById(id).orElse(null);
     }
 
-    // Save a customer to the database
-    @Override
-    public void saveCustomer(Customer customer) {
-        customerRepository.save(customer);
-    }
 }

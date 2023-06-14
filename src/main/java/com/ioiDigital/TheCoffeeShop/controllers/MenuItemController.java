@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,11 +18,13 @@ public class MenuItemController {
     private MenuItemService menuItemService;
 
     @PostMapping
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity createMenu(@RequestBody ListMenuItemCreateDTO listMenuItemCreateDTO) {
         return new ResponseEntity<>(this.menuItemService.createMenu(listMenuItemCreateDTO), HttpStatus.CREATED);
     }
 
     @PutMapping
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity updateMenu(@RequestBody ListMenuItemCreateDTO listMenuItemCreateDTO) {
         return new ResponseEntity<>(this.menuItemService.updateMenu(listMenuItemCreateDTO.getMenuItemCreationDTOS()), HttpStatus.CREATED);
     }

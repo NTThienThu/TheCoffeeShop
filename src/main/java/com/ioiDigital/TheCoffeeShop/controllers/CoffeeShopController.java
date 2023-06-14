@@ -27,9 +27,9 @@ public class CoffeeShopController {
     }
 
 
-//Only allow admin update them shop
+    //Only allow admin update them shop
     @PutMapping
-    //@PreAuthorize("hasAuthority('Global_Admin')")
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity updateShop(@RequestBody CoffeeShopCreateDTO coffeeShopRegisterDTO) {
         return new ResponseEntity<>(this.coffeeShopService.updateCoffeeShop(coffeeShopRegisterDTO), HttpStatus.CREATED);
     }
@@ -44,10 +44,11 @@ public class CoffeeShopController {
     public ResponseEntity<?> findCoffeeShopById(@PathVariable long id) {
         return ResponseEntity.ok(coffeeShopRepository.findById(id));
     }
+
     @GetMapping("/search")
     public ResponseEntity<?> searchCoffeeShop(@RequestParam int no, @RequestParam int limit,
                                               @RequestParam(value = "name", required = false) String name,
-                                              @RequestParam(value = "location", required = false) String location){
+                                              @RequestParam(value = "location", required = false) String location) {
         SearchCoffeeShopDTO searchCoffeeShopDTO = new SearchCoffeeShopDTO(name, location);
         return ResponseEntity.ok(coffeeShopService.searchCoffeeShop(searchCoffeeShopDTO, no, limit));
     }

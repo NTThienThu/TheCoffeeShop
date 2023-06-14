@@ -11,7 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCreateDTO {
-    private List<OrderItem> orderItems;
+    private int shopId;
+    private List<OrderItemCreateDTO> orderItemCreateDTOS;
 
     private String note;
 

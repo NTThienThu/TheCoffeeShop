@@ -1,21 +1,21 @@
 package com.ioiDigital.TheCoffeeShop.service.impl;
 
 import com.ioiDigital.TheCoffeeShop.dto.request.OrderCreateDTO;
-import com.ioiDigital.TheCoffeeShop.dto.response.OrderItemResponseDTO;
+import com.ioiDigital.TheCoffeeShop.dto.response.MessageResponse;
 import com.ioiDigital.TheCoffeeShop.dto.response.OrderResponseDTO;
-import com.ioiDigital.TheCoffeeShop.entity.Customer;
-import com.ioiDigital.TheCoffeeShop.entity.MenuItem;
-import com.ioiDigital.TheCoffeeShop.entity.Order;
-import com.ioiDigital.TheCoffeeShop.entity.OrderItem;
+import com.ioiDigital.TheCoffeeShop.entity.*;
+import com.ioiDigital.TheCoffeeShop.mapper.OrderItemMapper;
 import com.ioiDigital.TheCoffeeShop.mapper.OrderMapper;
-import com.ioiDigital.TheCoffeeShop.repository.CustomerRepository;
-import com.ioiDigital.TheCoffeeShop.repository.OrderRepository;
-import com.ioiDigital.TheCoffeeShop.repository.QueueRepository;
+import com.ioiDigital.TheCoffeeShop.repository.*;
 import com.ioiDigital.TheCoffeeShop.service.CustomerService;
 import com.ioiDigital.TheCoffeeShop.service.OrderService;
+import com.ioiDigital.TheCoffeeShop.service.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,98 +35,187 @@ public class OrderServiceImpl implements OrderService {
     private OrderMapper orderMapper;
 
     @Autowired
+    private OrderService orderService;
+
+    @Autowired
     private QueueRepository queueRepository;
 
-    // Save an order to the database
-    @Override
-    public void saveOrder(Order order) {
-        orderRepository.save(order);
-    }
+    @Autowired
+    private QueueService queueService;
 
-    // Get an order by id and customer id from the database
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
+
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+
     @Override
     public Order getOrderByIdAndCustomerId(Long orderId, Long customerId) {
-        return orderRepository.findByIdAndCustomerId(orderId, customerId).orElse(null);
+        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId).orElse(null);
+
+        if (order == null) {
+            throw new RuntimeException("Not found order");
+        }
+
+        int queuePosition = orderService.getQueuePosition(orderId);
+        int estimatedWaitingTime = orderService.getEstimatedWaitingTime(orderId);
+
+        order.setQueuePosition(queuePosition);
+        order.setEstimatedWaitingTime(estimatedWaitingTime);
+        return order;
     }
 
-    // Get the queue position of an order based on the creation time and status
     @Override
     public int getQueuePosition(Long orderId) {
-        // Get the order by id
+
         Order order = orderRepository.findById(orderId).orElse(null);
-        // Check if the order exists and is pending
-        if (order != null && order.getStatus().equals("pending")) {
-            // Get the list of pending orders before the given order
-            List<Order> ordersBefore = orderRepository.findByStatusAndCreatedTimeBefore("pending", order.getOrderDate());
-            // Return the size of the list plus one as the queue position
+
+        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.name())) {
+
+            List<Order> ordersBefore = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.name(), order.getOrderDate());
+
             return ordersBefore.size() + 1;
         } else {
-            // Return -1 if the order does not exist or is not pending
+
             return -1;
         }
     }
 
-    // Get the estimated waiting time of an order based on the queue position and average processing time
     @Override
     public int getEstimatedWaitingTime(Long orderId) {
-        // Get the queue position of the order
+
         int queuePosition = getQueuePosition(orderId);
-        // Check if the queue position is valid
+
         if (queuePosition > 0) {
-            // Get the average processing time of completed orders from the database
-            Double averageProcessingTime = orderRepository.getAverageProcessingTime();
-            // Check if the average processing time is not null
-            if (averageProcessingTime != null) {
-                // Return the product of queue position and average processing time as the estimated waiting time in seconds
-                return (int) Math.round(queuePosition * averageProcessingTime);
-            } else {
-                // Return -1 if the average processing time is null
-                return -1;
-            }
+            // default waiting time of 1 order = 3 minutes
+            return queuePosition * 3;
         } else {
-            // Return -1 if the queue position is invalid
             return -1;
         }
     }
 
-    // Get an order by id and queue id from the database
     @Override
     public Order getOrderByIdAndQueueId(Long orderId, Long queueId) {
         return orderRepository.findByIdAndQueueId(orderId, queueId).orElse(null);
     }
 
-    // Get an order by id from the database
     @Override
     public Order getOrderById(Long id) {
         return orderRepository.findById(id).orElse(null);
     }
 
     @Override
-    public OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO, int shopId) {
-        // Get the customer by id
-        Customer customer = customerService.getCurrentLogInCustomer();
-        Order order = orderMapper.toEntity(orderCreateDTO);
+    public OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO) {
 
-        order.setQueue(queueRepository.findByShop_Id(shopId));
+        Queue queue = queueService.getQueueByShopId(orderCreateDTO.getShopId());
+        int orderInQueue = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.name(), LocalDateTime.now()).size();
+        if (orderInQueue < queue.getMaxQueueSize()) {
 
-        order.setCustomer(customer);
-        order.setStatus("pending");
-        order.setNote(orderCreateDTO.getNote());
-        order.setOrderDate(LocalDateTime.now());
+            Customer customer = customerService.getCurrentLogInCustomer();
+            List<OrderItem> orderItemList = orderItemMapper.toListEntity(orderCreateDTO.getOrderItemCreateDTOS());
 
+            orderItemList.forEach(orderItem -> {
+                MenuItem menuItem = menuItemRepository.findById(orderItem.getMenuItem().getId())
+                        .orElseThrow(() -> new RuntimeException("Menu item not found with ID: " + orderItem.getMenuItem().getId()));
 
-        double totalPrice = 0;
+                orderItem.setSubtotal(orderItem.getQuantity() * menuItem.getPrice());
+                orderItem.setMenuItem(menuItem);
+            });
 
-        for (OrderItem orderItem : orderCreateDTO.getOrderItems()) {
-            MenuItem menuItem = orderItem.getMenuItem();
-            int quantity = orderItem.getQuantity();
-            totalPrice += menuItem.getPrice() * quantity;
+            orderItemRepository.saveAll(orderItemList);
+
+            Order order = orderMapper.toEntity(orderCreateDTO);
+
+            order.setQueue(queueService.getQueueByShopId(orderCreateDTO.getShopId()));
+            order.setOrderItems(orderItemList);
+            order.setCustomer(customer);
+            order.setStatus(EStatusOrder.RECEIVED.name());
+            order.setNote(orderCreateDTO.getNote());
+            order.setOrderDate(LocalDateTime.now());
+
+            double totalPrice = orderItemList.stream()
+                    .mapToDouble(OrderItem::getSubtotal)
+                    .sum();
+            order.setTotalAmount(totalPrice);
+
+            orderRepository.save(order);
+
+            List<Order> orders = this.findAllByQueueId(queue.getId());
+
+            for (int i = 0; i < orders.size(); i++) {
+
+                Order order1 = orders.get(i);
+                order1.setQueuePosition(i + 1);
+
+                int estimatedWaitingTime = orderService.getEstimatedWaitingTime(order1.getId());
+                order1.setEstimatedWaitingTime(estimatedWaitingTime);
+
+                orderRepository.save(order1);
+            }
+            OrderResponseDTO orderResponseDTO = this.orderMapper.toDTO(order);
+            orderResponseDTO.setCustomerName(customer.getName());
+
+            return orderResponseDTO;
         }
+        throw new RuntimeException("full queue");
+    }
 
-        order.setTotalAmount(totalPrice);
+    @Override
+    public List<Order> findAllByQueueId(Long id) {
+        return orderRepository.findAllByQueueId(id);
+    }
 
-        orderRepository.save(order);
-        return null;
-}
+    @Override
+    public MessageResponse cancelOrder(Long orderId, Long customerId) {
+        Order order = orderService.getOrderByIdAndCustomerId(orderId, customerId);
+        if (order != null && order.getStatus().equals(EStatusOrder.CANCEL.name())) {
+
+            queueService.removeOrderFromQueue(order);
+
+            order.setStatus(EStatusOrder.CANCEL.name());
+
+            orderRepository.save(order);
+
+            queueService.updateQueueDetails();
+        }
+        return new MessageResponse("Delete done");
+    }
+
+    @Override
+    public OrderResponseDTO completedOrder(Long orderId) {
+        Order order = orderService.getOrderById(orderId);
+
+        if (order != null && order.getStatus().equals(EStatusOrder.DONE.name())) {
+
+            order.setStatus(EStatusOrder.DONE.name());
+
+            orderRepository.save(order);
+
+            Customer customer = order.getCustomer();
+
+            if (customer != null) {
+
+                customer.setServiceCount(customer.getServiceCount() + 1);
+
+                customerRepository.save(customer);
+            }
+        }
+        return orderMapper.toDTO(order);
+    }
+
+    @Override
+    public OrderResponseDTO serveCustomer(Long orderId, Long queueId) {
+        Order order = orderService.getOrderByIdAndQueueId(orderId, queueId);
+        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED)) {
+            queueService.removeOrderFromQueue(order);
+            order.setStatus(EStatusOrder.PREPARING.name());
+            order.setProcessedDate(LocalDateTime.now());
+            orderRepository.save(order);
+        }
+        return orderMapper.toDTO(order);
+    }
 
 }

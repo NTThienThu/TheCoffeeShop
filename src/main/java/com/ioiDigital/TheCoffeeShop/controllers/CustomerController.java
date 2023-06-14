@@ -11,6 +11,7 @@ import com.ioiDigital.TheCoffeeShop.service.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -29,6 +30,7 @@ public class CustomerController {
     }
 
     @PutMapping("")
+    @PreAuthorize("hasRole('Customer')")
     public ResponseEntity<?> update(@RequestBody CustomerRegisterDTO customerRegisterDTO) {
         return new ResponseEntity<>(customerService.update(customerRegisterDTO), HttpStatus.OK);
     }
