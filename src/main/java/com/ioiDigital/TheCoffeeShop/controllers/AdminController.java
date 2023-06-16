@@ -16,13 +16,13 @@ public class AdminController {
     private AdminService adminService;
 
     @PostMapping
-    @PreAuthorize("hasRole('Global_Admin')")
+    @PreAuthorize("hasAuthority('Global_Admin')")
     public ResponseEntity createAdmin(@RequestBody AdminRegisterDTO adminRegisterDTO) {
         return new ResponseEntity<>(this.adminService.registerAdmin(adminRegisterDTO), HttpStatus.CREATED);
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity updateAdmin(@RequestBody AdminRegisterDTO adminRegisterDTO) {
         return new ResponseEntity<>(this.adminService.updateAdminInfo(adminRegisterDTO), HttpStatus.CREATED);
     }

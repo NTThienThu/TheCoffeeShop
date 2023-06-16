@@ -38,7 +38,7 @@ public class OrderController {
     private OrderMapper orderMapper;
 
     @PostMapping
-    @PreAuthorize("hasRole('Customer')")
+    @PreAuthorize("hasAuthority('Customer')")
     public ResponseEntity<?> createOrder(@RequestBody OrderCreateDTO orderCreateDTO) {
         return new ResponseEntity<>(orderService.createOrder(orderCreateDTO), HttpStatus.CREATED);
     }
@@ -56,7 +56,7 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/complete")
-    @PreAuthorize("hasRole('Employee')")
+    @PreAuthorize("hasAuthority('Employee')")
     public ResponseEntity<?> completeOrder(@PathVariable Long orderId) {
         return new ResponseEntity<>(orderService.completedOrder(orderId), HttpStatus.OK);
     }

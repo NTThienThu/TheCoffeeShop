@@ -30,7 +30,7 @@ public class CustomerController {
     }
 
     @PutMapping("")
-    @PreAuthorize("hasRole('Customer')")
+    @PreAuthorize("hasAuthority('Customer')")
     public ResponseEntity<?> update(@RequestBody CustomerRegisterDTO customerRegisterDTO) {
         return new ResponseEntity<>(customerService.update(customerRegisterDTO), HttpStatus.OK);
     }
