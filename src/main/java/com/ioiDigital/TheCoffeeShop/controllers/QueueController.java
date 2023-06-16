@@ -19,7 +19,7 @@ public class QueueController {
     private QueueService queueService;
 
     @PutMapping
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity updateQueue(@RequestParam int maxSize) {
         return new ResponseEntity<>(this.queueService.updateSizeOfQueue(maxSize), HttpStatus.CREATED);
     }
@@ -27,10 +27,6 @@ public class QueueController {
     @Autowired
     private OrderService orderService;
 
-    @PutMapping("/{queueId}/orders/{orderId}")
-    @PreAuthorize("hasRole('Employee')")
-    public ResponseEntity<?> serveCustomer(@PathVariable Long queueId, @PathVariable Long orderId) {
-                return new ResponseEntity<>(orderService.serveCustomer(orderId,queueId), HttpStatus.OK);
-    }
+
 
 }

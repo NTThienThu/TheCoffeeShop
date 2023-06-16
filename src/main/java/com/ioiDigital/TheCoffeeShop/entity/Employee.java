@@ -26,4 +26,6 @@ public class Employee {
     @ManyToOne
     @JoinColumn(name = "coffee_shop_id")
     private CoffeeShop coffeeShop;
+
+
 }

@@ -15,13 +15,13 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
     @PostMapping
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity createEmployee(@RequestBody EmployeeRegisterDTO employeeRegisterDTO) {
         return new ResponseEntity<>(this.employeeService.registerEmployee(employeeRegisterDTO), HttpStatus.CREATED);
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('Employee')")
+    @PreAuthorize("hasAuthority('Employee')")
     public ResponseEntity updateEmployee(@RequestBody EmployeeRegisterDTO employeeRegisterDTO) {
         return new ResponseEntity<>(this.employeeService.updateEmployeeInfo(employeeRegisterDTO), HttpStatus.CREATED);
     }

@@ -18,13 +18,13 @@ public class MenuItemController {
     private MenuItemService menuItemService;
 
     @PostMapping
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity createMenu(@RequestBody ListMenuItemCreateDTO listMenuItemCreateDTO) {
         return new ResponseEntity<>(this.menuItemService.createMenu(listMenuItemCreateDTO), HttpStatus.CREATED);
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity updateMenu(@RequestBody ListMenuItemCreateDTO listMenuItemCreateDTO) {
         return new ResponseEntity<>(this.menuItemService.updateMenu(listMenuItemCreateDTO.getMenuItemCreationDTOS()), HttpStatus.CREATED);
     }

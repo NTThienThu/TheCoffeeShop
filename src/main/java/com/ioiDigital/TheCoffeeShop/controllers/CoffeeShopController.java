@@ -29,7 +29,7 @@ public class CoffeeShopController {
 
     //Only allow admin update them shop
     @PutMapping
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity updateShop(@RequestBody CoffeeShopCreateDTO coffeeShopRegisterDTO) {
         return new ResponseEntity<>(this.coffeeShopService.updateCoffeeShop(coffeeShopRegisterDTO), HttpStatus.CREATED);
     }

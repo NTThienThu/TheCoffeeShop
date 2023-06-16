@@ -11,13 +11,11 @@ import com.ioiDigital.TheCoffeeShop.service.CustomerService;
 import com.ioiDigital.TheCoffeeShop.service.OrderService;
 import com.ioiDigital.TheCoffeeShop.service.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -53,19 +51,22 @@ public class OrderServiceImpl implements OrderService {
     private MenuItemRepository menuItemRepository;
 
     @Override
-    public Order getOrderByIdAndCustomerId(Long orderId, Long customerId) {
-        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId).orElse(null);
+    public OrderResponseDTO getOrderDetailById(Long orderId) {
+        Order order = orderService.getOrderById(orderId);
 
-        if (order == null) {
-            throw new RuntimeException("Not found order");
-        }
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
+        order.setOrderItems(orderItems);
 
         int queuePosition = orderService.getQueuePosition(orderId);
         int estimatedWaitingTime = orderService.getEstimatedWaitingTime(orderId);
 
         order.setQueuePosition(queuePosition);
         order.setEstimatedWaitingTime(estimatedWaitingTime);
-        return order;
+
+        OrderResponseDTO orderResponseDTO = this.orderMapper.toDTO(order);
+        orderResponseDTO.setCustomerName(order.getCustomer().getName());
+
+        return orderResponseDTO;
     }
 
     @Override
@@ -98,11 +99,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getOrderByIdAndQueueId(Long orderId, Long queueId) {
-        return orderRepository.findByIdAndQueueId(orderId, queueId).orElse(null);
-    }
-
-    @Override
     public Order getOrderById(Long id) {
         return orderRepository.findById(id).orElse(null);
     }
@@ -111,8 +107,12 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO) {
 
         Queue queue = queueService.getQueueByShopId(orderCreateDTO.getShopId());
+
         int orderInQueue = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), LocalDateTime.now()).size();
         if (orderInQueue < queue.getMaxQueueSize()) {
+
+            Order order = orderMapper.toEntity(orderCreateDTO);
+
 
             Customer customer = customerService.getCurrentLogInCustomer();
             List<OrderItem> orderItemList = orderItemMapper.toListEntity(orderCreateDTO.getOrderItemCreateDTOS());
@@ -123,11 +123,8 @@ public class OrderServiceImpl implements OrderService {
 
                 orderItem.setSubtotal(orderItem.getQuantity() * menuItem.getPrice());
                 orderItem.setMenuItem(menuItem);
+                orderItem.setOrder(order);
             });
-
-            orderItemRepository.saveAll(orderItemList);
-
-            Order order = orderMapper.toEntity(orderCreateDTO);
 
             order.setQueue(queueService.getQueueByShopId(orderCreateDTO.getShopId()));
             order.setOrderItems(orderItemList);
@@ -143,7 +140,9 @@ public class OrderServiceImpl implements OrderService {
 
             orderRepository.save(order);
 
-            List<Order> orders = this.findAllByQueueId(queue.getId());
+            orderItemRepository.saveAll(orderItemList);
+
+            List<Order> orders = this.findAllByStatusAndQueueId(EStatusOrder.RECEIVED.getStatusOrder(),queue.getId());
 
             for (int i = 0; i < orders.size(); i++) {
 
@@ -164,16 +163,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> findAllByQueueId(Long id) {
-        return orderRepository.findAllByQueueId(id);
+    public List<Order> findAllByQueueId( Long id) {
+        return orderRepository.findAllByQueueId( id);
     }
 
     @Override
-    public MessageResponse cancelOrder(Long orderId, Long customerId) {
-        Order order = orderService.getOrderByIdAndCustomerId(orderId, customerId);
-        if (order != null && order.getStatus().equals(EStatusOrder.CANCEL.getStatusOrder())) {
+    public List<Order> findAllByStatusAndQueueId(String status, Long id) {
+        return orderRepository.findByStatusAndQueueId(status, id);
+    }
 
-            queueService.removeOrderFromQueue(order);
+
+    @Override
+    public MessageResponse cancelOrder(Long orderId) {
+
+        Order order = orderService.getOrderById(orderId);
+
+        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
 
             order.setStatus(EStatusOrder.CANCEL.getStatusOrder());
 
@@ -181,14 +186,14 @@ public class OrderServiceImpl implements OrderService {
 
             queueService.updateQueueDetails();
         }
-        return new MessageResponse("Delete done");
+        return new MessageResponse("Cancel done");
     }
 
     @Override
     public OrderResponseDTO completedOrder(Long orderId) {
         Order order = orderService.getOrderById(orderId);
 
-        if (order != null && order.getStatus().equals(EStatusOrder.DONE.getStatusOrder())) {
+        if (order != null && order.getStatus().equals(EStatusOrder.PREPARING.getStatusOrder())) {
 
             order.setStatus(EStatusOrder.DONE.getStatusOrder());
 
@@ -207,12 +212,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponseDTO serveCustomer(Long orderId, Long queueId) {
-        Order order = orderService.getOrderByIdAndQueueId(orderId, queueId);
+    public OrderResponseDTO serveCustomer(Long orderId) {
+
+        Order order = orderService.getOrderById(orderId);
+
         if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
-            queueService.removeOrderFromQueue(order);
+
             order.setStatus(EStatusOrder.PREPARING.getStatusOrder());
             order.setProcessedDate(LocalDateTime.now());
+
             orderRepository.save(order);
         }
         return orderMapper.toDTO(order);
