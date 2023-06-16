@@ -73,9 +73,9 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderRepository.findById(orderId).orElse(null);
 
-        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.name())) {
+        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
 
-            List<Order> ordersBefore = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.name(), order.getOrderDate());
+            List<Order> ordersBefore = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), order.getOrderDate());
 
             return ordersBefore.size() + 1;
         } else {
@@ -111,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO) {
 
         Queue queue = queueService.getQueueByShopId(orderCreateDTO.getShopId());
-        int orderInQueue = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.name(), LocalDateTime.now()).size();
+        int orderInQueue = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), LocalDateTime.now()).size();
         if (orderInQueue < queue.getMaxQueueSize()) {
 
             Customer customer = customerService.getCurrentLogInCustomer();
@@ -132,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
             order.setQueue(queueService.getQueueByShopId(orderCreateDTO.getShopId()));
             order.setOrderItems(orderItemList);
             order.setCustomer(customer);
-            order.setStatus(EStatusOrder.RECEIVED.name());
+            order.setStatus(EStatusOrder.RECEIVED.getStatusOrder());
             order.setNote(orderCreateDTO.getNote());
             order.setOrderDate(LocalDateTime.now());
 
@@ -171,11 +171,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public MessageResponse cancelOrder(Long orderId, Long customerId) {
         Order order = orderService.getOrderByIdAndCustomerId(orderId, customerId);
-        if (order != null && order.getStatus().equals(EStatusOrder.CANCEL.name())) {
+        if (order != null && order.getStatus().equals(EStatusOrder.CANCEL.getStatusOrder())) {
 
             queueService.removeOrderFromQueue(order);
 
-            order.setStatus(EStatusOrder.CANCEL.name());
+            order.setStatus(EStatusOrder.CANCEL.getStatusOrder());
 
             orderRepository.save(order);
 
@@ -188,9 +188,9 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO completedOrder(Long orderId) {
         Order order = orderService.getOrderById(orderId);
 
-        if (order != null && order.getStatus().equals(EStatusOrder.DONE.name())) {
+        if (order != null && order.getStatus().equals(EStatusOrder.DONE.getStatusOrder())) {
 
-            order.setStatus(EStatusOrder.DONE.name());
+            order.setStatus(EStatusOrder.DONE.getStatusOrder());
 
             orderRepository.save(order);
 
@@ -209,9 +209,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDTO serveCustomer(Long orderId, Long queueId) {
         Order order = orderService.getOrderByIdAndQueueId(orderId, queueId);
-        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED)) {
+        if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
             queueService.removeOrderFromQueue(order);
-            order.setStatus(EStatusOrder.PREPARING.name());
+            order.setStatus(EStatusOrder.PREPARING.getStatusOrder());
             order.setProcessedDate(LocalDateTime.now());
             orderRepository.save(order);
         }
