@@ -37,7 +37,7 @@ public class OrderController {
     @Autowired
     private OrderMapper orderMapper;
 
-    @PostMapping()
+    @PostMapping
     @PreAuthorize("hasRole('Customer')")
     public ResponseEntity<?> createOrder(@RequestBody OrderCreateDTO orderCreateDTO) {
         return new ResponseEntity<>(orderService.createOrder(orderCreateDTO), HttpStatus.CREATED);

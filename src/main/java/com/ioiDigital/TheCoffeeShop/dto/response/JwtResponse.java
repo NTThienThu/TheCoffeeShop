@@ -1,6 +1,6 @@
 package com.ioiDigital.TheCoffeeShop.dto.response;
 
-import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
 
 public class JwtResponse {
   private String token;

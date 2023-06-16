@@ -22,31 +22,29 @@ public class UserDetailsImpl implements UserDetails {
   @JsonIgnore
   private String password;
 
-  private Collection<? extends GrantedAuthority> authorities;
+  private SimpleGrantedAuthority authority;
 
   public UserDetailsImpl(Long id, String username, String password,
-      Collection<? extends GrantedAuthority> authorities) {
+                         SimpleGrantedAuthority authority) {
     this.id = id;
     this.username = username;
     this.password = password;
-    this.authorities = authorities;
+    this.authority = authority;
   }
 
   public static UserDetailsImpl build(User user) {
-    List<GrantedAuthority> authorities = Collections.singletonList(
-            new SimpleGrantedAuthority(user.getRole().getName())
-    );
+    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getName());
 
     return new UserDetailsImpl(
-        user.getId(),
-        user.getUsername(),
-        user.getPassword(),
-        authorities);
+            user.getId(),
+            user.getUsername(),
+            user.getPassword(),
+            authority);
   }
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return authorities;
+    return Collections.singletonList(authority);
   }
 
   public Long getId() {

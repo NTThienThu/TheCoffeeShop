@@ -60,12 +60,11 @@ public class AuthController {
         User user = userService.getCurrentLoginUser();
         if (!user.isStatus()) throw new RuntimeException("Your account not active");
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String role = Collections.singletonList(userDetails.getAuthorities()).toString();
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
-                role));
+                userDetails.getAuthorities().iterator().next().toString()));
     }
 
     @PreAuthorize(value = "isAuthenticated()")
