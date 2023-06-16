@@ -27,10 +27,6 @@ public class QueueController {
     @Autowired
     private OrderService orderService;
 
-    @PutMapping("/{queueId}/orders/{orderId}")
-    @PreAuthorize("hasAuthority('Employee')")
-    public ResponseEntity<?> serveCustomer(@PathVariable Long queueId, @PathVariable Long orderId) {
-                return new ResponseEntity<>(orderService.serveCustomer(orderId,queueId), HttpStatus.OK);
-    }
+
 
 }

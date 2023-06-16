@@ -46,17 +46,6 @@ public class QueueServiceImpl implements QueueService {
     }
 
     @Override
-    public void removeOrderFromQueue(Order order) {
-        Queue queue = order.getQueue();
-
-        if (queue != null) {
-
-            orderService.findAllByQueueId(queue.getId()).remove(order);
-            queueRepository.save(queue);
-        }
-    }
-
-    @Override
     public void updateQueueDetails() {
 
         List<Queue> queues = queueRepository.findAll();

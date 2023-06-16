@@ -43,16 +43,22 @@ public class OrderController {
         return new ResponseEntity<>(orderService.createOrder(orderCreateDTO), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{orderId}/customer/{customerId}")
-    public ResponseEntity<?> getOrderDetails(@PathVariable Long orderId, @PathVariable Long customerId) {
-        return new ResponseEntity<>(orderMapper.toDTO(orderService.getOrderByIdAndCustomerId(orderId, customerId)), HttpStatus.OK);
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> getOrderDetails(@PathVariable Long orderId) {
+        return new ResponseEntity<>(orderMapper.toDTO(orderService.getOrderById(orderId)), HttpStatus.OK);
     }
 
 
-    @DeleteMapping("/{orderId}/customer/{customerId}/remove")
-    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId, @PathVariable Long customerId) {
-        return ResponseEntity.ok(this.orderService.cancelOrder(orderId, customerId));
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(this.orderService.cancelOrder(orderId));
 
+    }
+
+    @PutMapping("/{orderId}/serve")
+    @PreAuthorize("hasAuthority('Employee')")
+    public ResponseEntity<?> serveCustomer( @PathVariable Long orderId) {
+        return new ResponseEntity<>(orderService.serveCustomer(orderId), HttpStatus.OK);
     }
 
     @PutMapping("/{orderId}/complete")
@@ -60,5 +66,4 @@ public class OrderController {
     public ResponseEntity<?> completeOrder(@PathVariable Long orderId) {
         return new ResponseEntity<>(orderService.completedOrder(orderId), HttpStatus.OK);
     }
-
 }

@@ -10,7 +10,5 @@ public interface QueueService {
 
     Queue getQueueById(Long id);
 
-    void removeOrderFromQueue(Order order);
-
     void updateQueueDetails();
 }

@@ -20,6 +20,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findAllByQueueId(Long id);
 
+    List<Order> findByStatusAndQueueId(String status, Long id);
 
 
 }

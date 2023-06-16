@@ -8,10 +8,6 @@ import com.ioiDigital.TheCoffeeShop.entity.Order;
 import java.util.List;
 
 public interface OrderService {
-    Order getOrderByIdAndQueueId(Long orderId, Long queueId);
-    
-
-    Order getOrderByIdAndCustomerId(Long orderId, Long customerId);
 
     int getQueuePosition(Long orderId);
 
@@ -23,9 +19,11 @@ public interface OrderService {
 
     List<Order> findAllByQueueId(Long id);
 
-    MessageResponse cancelOrder(Long orderId, Long customerId);
+    List<Order> findAllByStatusAndQueueId(String status, Long id);
+
+    MessageResponse cancelOrder(Long orderId);
 
     Object completedOrder(Long orderId);
 
-    Object serveCustomer(Long orderId, Long queueId);
+    OrderResponseDTO serveCustomer(Long orderId);
 }
