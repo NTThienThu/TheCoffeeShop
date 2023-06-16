@@ -57,11 +57,11 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
         order.setOrderItems(orderItems);
 
-        int queuePosition = orderService.getQueuePosition(orderId);
-        int estimatedWaitingTime = orderService.getEstimatedWaitingTime(orderId);
-
-        order.setQueuePosition(queuePosition);
-        order.setEstimatedWaitingTime(estimatedWaitingTime);
+//        int queuePosition = orderService.getQueuePosition(orderId);
+//        int estimatedWaitingTime = orderService.getEstimatedWaitingTime(orderId);
+//
+//        order.setQueuePosition(queuePosition);
+//        order.setEstimatedWaitingTime(estimatedWaitingTime);
 
         OrderResponseDTO orderResponseDTO = this.orderMapper.toDTO(order);
         orderResponseDTO.setCustomerName(order.getCustomer().getName());
@@ -184,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
 
             orderRepository.save(order);
 
-            queueService.updateQueueDetails();
+            queueService.updateQueueDetails(order.getQueue().getId());
         }
         return new MessageResponse("Cancel done");
     }
@@ -222,6 +222,8 @@ public class OrderServiceImpl implements OrderService {
             order.setProcessedDate(LocalDateTime.now());
 
             orderRepository.save(order);
+
+            queueService.updateQueueDetails(order.getQueue().getId());
         }
         return orderMapper.toDTO(order);
     }

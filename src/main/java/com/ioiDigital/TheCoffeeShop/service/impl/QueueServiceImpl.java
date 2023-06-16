@@ -46,24 +46,20 @@ public class QueueServiceImpl implements QueueService {
     }
 
     @Override
-    public void updateQueueDetails() {
+    public void updateQueueDetails(Long id) {
 
-        List<Queue> queues = queueRepository.findAll();
+        List<Order> orders = orderService.findAllByQueueId(id);
 
-        for (Queue queue : queues) {
+        for (int i = 0; i < orders.size(); i++) {
 
-            List<Order> orders = orderService.findAllByQueueId(queue.getId());
+            Order order = orders.get(i);
+            order.setQueuePosition(i + 1);
 
-            for (int i = 0; i < orders.size(); i++) {
+            int estimatedWaitingTime = orderService.getEstimatedWaitingTime(order.getId());
+            order.setEstimatedWaitingTime(estimatedWaitingTime);
 
-                Order order = orders.get(i);
-                order.setQueuePosition(i + 1);
-
-                int estimatedWaitingTime = orderService.getEstimatedWaitingTime(order.getId());
-                order.setEstimatedWaitingTime(estimatedWaitingTime);
-
-                orderRepository.save(order);
-            }
+            orderRepository.save(order);
         }
     }
 }
+

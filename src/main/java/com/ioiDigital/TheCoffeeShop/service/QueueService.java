@@ -10,5 +10,5 @@ public interface QueueService {
 
     Queue getQueueById(Long id);
 
-    void updateQueueDetails();
+    void updateQueueDetails(Long id);
 }
