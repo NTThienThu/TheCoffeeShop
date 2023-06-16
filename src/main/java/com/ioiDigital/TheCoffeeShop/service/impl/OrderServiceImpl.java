@@ -72,11 +72,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public int getQueuePosition(Long orderId) {
 
+
         Order order = orderRepository.findById(orderId).orElse(null);
 
         if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
 
-            List<Order> ordersBefore = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), order.getOrderDate());
+            List<Order> ordersBefore = orderRepository.findByStatusAndQueueIdAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(),order.getQueue().getId(), order.getOrderDate());
 
             return ordersBefore.size() + 1;
         } else {
@@ -108,11 +109,11 @@ public class OrderServiceImpl implements OrderService {
 
         Queue queue = queueService.getQueueByShopId(orderCreateDTO.getShopId());
 
-        int orderInQueue = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), LocalDateTime.now()).size();
+        int orderInQueue = orderRepository.findByStatusAndQueueIdAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), queue
+                .getId(), LocalDateTime.now()).size();
         if (orderInQueue < queue.getMaxQueueSize()) {
 
             Order order = orderMapper.toEntity(orderCreateDTO);
-
 
             Customer customer = customerService.getCurrentLogInCustomer();
             List<OrderItem> orderItemList = orderItemMapper.toListEntity(orderCreateDTO.getOrderItemCreateDTOS());
@@ -142,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
 
             orderItemRepository.saveAll(orderItemList);
 
-            List<Order> orders = this.findAllByStatusAndQueueId(EStatusOrder.RECEIVED.getStatusOrder(),queue.getId());
+            List<Order> orders = this.findAllByStatusAndQueueId(EStatusOrder.RECEIVED.getStatusOrder(), queue.getId());
 
             for (int i = 0; i < orders.size(); i++) {
 
@@ -163,8 +164,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> findAllByQueueId( Long id) {
-        return orderRepository.findAllByQueueId( id);
+    public List<Order> findAllByQueueId(Long id) {
+        return orderRepository.findAllByQueueId(id);
     }
 
     @Override
@@ -184,7 +185,7 @@ public class OrderServiceImpl implements OrderService {
 
             orderRepository.save(order);
 
-            queueService.updateQueueDetails();
+            queueService.updateQueueDetails(order.getQueue().getId());
         }
         return new MessageResponse("Cancel done");
     }
@@ -222,6 +223,8 @@ public class OrderServiceImpl implements OrderService {
             order.setProcessedDate(LocalDateTime.now());
 
             orderRepository.save(order);
+
+            queueService.updateQueueDetails(order.getQueue().getId());
         }
         return orderMapper.toDTO(order);
     }
