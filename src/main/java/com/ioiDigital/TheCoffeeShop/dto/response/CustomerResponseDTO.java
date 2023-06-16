@@ -14,5 +14,6 @@ public class CustomerResponseDTO implements Serializable {
     private String name;
     private String mobileNumber;
     private String address;
+    private int serviceCount;
     private UserResponseDTO userResponseDTO;
 }

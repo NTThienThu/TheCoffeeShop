@@ -9,9 +9,12 @@ import java.util.List;
 
 public interface OrderService {
 
+    OrderResponseDTO getOrderDetailById(Long orderId);
+
     int getQueuePosition(Long orderId);
 
     int getEstimatedWaitingTime(Long orderId);
+
 
     Order getOrderById(Long id);
 

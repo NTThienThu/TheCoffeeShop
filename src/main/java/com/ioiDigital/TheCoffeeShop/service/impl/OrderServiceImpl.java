@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -50,19 +51,22 @@ public class OrderServiceImpl implements OrderService {
     private MenuItemRepository menuItemRepository;
 
     @Override
-    public Order getOrderById(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElse(null);
+    public OrderResponseDTO getOrderDetailById(Long orderId) {
+        Order order = orderService.getOrderById(orderId);
 
-        if (order == null) {
-            throw new RuntimeException("Not found order");
-        }
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
+        order.setOrderItems(orderItems);
 
         int queuePosition = orderService.getQueuePosition(orderId);
         int estimatedWaitingTime = orderService.getEstimatedWaitingTime(orderId);
 
         order.setQueuePosition(queuePosition);
         order.setEstimatedWaitingTime(estimatedWaitingTime);
-        return order;
+
+        OrderResponseDTO orderResponseDTO = this.orderMapper.toDTO(order);
+        orderResponseDTO.setCustomerName(order.getCustomer().getName());
+
+        return orderResponseDTO;
     }
 
     @Override
@@ -95,11 +99,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Order getOrderById(Long id) {
+        return orderRepository.findById(id).orElse(null);
+    }
+
+    @Override
     public OrderResponseDTO createOrder(OrderCreateDTO orderCreateDTO) {
 
         Queue queue = queueService.getQueueByShopId(orderCreateDTO.getShopId());
+
         int orderInQueue = orderRepository.findByStatusAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), LocalDateTime.now()).size();
         if (orderInQueue < queue.getMaxQueueSize()) {
+
+            Order order = orderMapper.toEntity(orderCreateDTO);
+
 
             Customer customer = customerService.getCurrentLogInCustomer();
             List<OrderItem> orderItemList = orderItemMapper.toListEntity(orderCreateDTO.getOrderItemCreateDTOS());
@@ -110,11 +123,8 @@ public class OrderServiceImpl implements OrderService {
 
                 orderItem.setSubtotal(orderItem.getQuantity() * menuItem.getPrice());
                 orderItem.setMenuItem(menuItem);
+                orderItem.setOrder(order);
             });
-
-            orderItemRepository.saveAll(orderItemList);
-
-            Order order = orderMapper.toEntity(orderCreateDTO);
 
             order.setQueue(queueService.getQueueByShopId(orderCreateDTO.getShopId()));
             order.setOrderItems(orderItemList);
@@ -129,6 +139,8 @@ public class OrderServiceImpl implements OrderService {
             order.setTotalAmount(totalPrice);
 
             orderRepository.save(order);
+
+            orderItemRepository.saveAll(orderItemList);
 
             List<Order> orders = this.findAllByStatusAndQueueId(EStatusOrder.RECEIVED.getStatusOrder(),queue.getId());
 
@@ -163,7 +175,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public MessageResponse cancelOrder(Long orderId) {
+
         Order order = orderService.getOrderById(orderId);
+
         if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
 
             order.setStatus(EStatusOrder.CANCEL.getStatusOrder());
@@ -199,10 +213,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDTO serveCustomer(Long orderId) {
+
         Order order = orderService.getOrderById(orderId);
+
         if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
+
             order.setStatus(EStatusOrder.PREPARING.getStatusOrder());
             order.setProcessedDate(LocalDateTime.now());
+
             orderRepository.save(order);
         }
         return orderMapper.toDTO(order);
