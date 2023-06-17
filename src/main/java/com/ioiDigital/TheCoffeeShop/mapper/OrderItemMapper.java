@@ -17,6 +17,7 @@ public interface OrderItemMapper {
 
     OrderItem toEntity(OrderItemCreateDTO orderItemCreateDTO);
 
+    @Mapping(source = "menuItem", target = "menuItemResponseDTO")
     OrderItemResponseDTO toDTO(OrderItem orderItem);
 
     List<OrderItem> toListEntity(List<OrderItemCreateDTO> orderItemCreateDTOS);
