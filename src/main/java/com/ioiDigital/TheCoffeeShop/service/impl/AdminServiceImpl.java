@@ -3,6 +3,7 @@ package com.ioiDigital.TheCoffeeShop.service.impl;
 import com.ioiDigital.TheCoffeeShop.dto.request.AdminRegisterDTO;
 import com.ioiDigital.TheCoffeeShop.dto.response.AdminResponseDTO;
 import com.ioiDigital.TheCoffeeShop.entity.Admin;
+import com.ioiDigital.TheCoffeeShop.entity.CoffeeShop;
 import com.ioiDigital.TheCoffeeShop.entity.ERole;
 import com.ioiDigital.TheCoffeeShop.entity.User;
 import com.ioiDigital.TheCoffeeShop.mapper.AdminMapper;
@@ -13,6 +14,7 @@ import com.ioiDigital.TheCoffeeShop.service.AdminService;
 import com.ioiDigital.TheCoffeeShop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -35,6 +37,12 @@ public class AdminServiceImpl implements AdminService {
     private RoleRepository roleRepository;
 
     @Override
+    public CoffeeShop getCoffeeShopById(Long id){
+        return coffeeShopRepository.findById(id).orElseThrow(() -> new RuntimeException("Not found shop by this id"));
+    }
+
+    @Transactional
+    @Override
     public AdminResponseDTO registerAdmin(AdminRegisterDTO adminRegisterDTO) {
         if (!adminRepository.existsByCoffeeShopId(adminRegisterDTO.getShopId())) {
 
@@ -43,13 +51,13 @@ public class AdminServiceImpl implements AdminService {
 
             Admin admin = new Admin();
             admin.setUser(user);
-            admin.setCoffeeShop(coffeeShopRepository.findById(adminRegisterDTO.getShopId()));
+            admin.setCoffeeShop(this.getCoffeeShopById(adminRegisterDTO.getShopId()));
             adminRepository.save(admin);
 
             return adminMapper.toDTO(admin);
 
         }
-        throw new RuntimeException("The coffee shop had admin");
+         else throw new RuntimeException("The coffee shop had admin");
 
     }
 

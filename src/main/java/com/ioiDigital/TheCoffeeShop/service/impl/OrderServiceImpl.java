@@ -77,7 +77,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (order != null && order.getStatus().equals(EStatusOrder.RECEIVED.getStatusOrder())) {
 
-            List<Order> ordersBefore = orderRepository.findByStatusAndQueueIdAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(),order.getQueue().getId(), order.getOrderDate());
+            List<Order> ordersBefore = orderRepository.findByStatusAndQueueIdAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), order.getQueue().getId(), order.getOrderDate());
 
             return ordersBefore.size() + 1;
         } else {
@@ -101,7 +101,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id).orElse(null);
+        return orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Not found order by this id"));
     }
 
     @Override
@@ -109,8 +109,8 @@ public class OrderServiceImpl implements OrderService {
 
         Queue queue = queueService.getQueueByShopId(orderCreateDTO.getShopId());
 
-        int orderInQueue = orderRepository.findByStatusAndQueueIdAndOrderDateBefore(EStatusOrder.RECEIVED.getStatusOrder(), queue
-                .getId(), LocalDateTime.now()).size();
+        int orderInQueue = orderRepository.findByStatusAndQueueId(EStatusOrder.RECEIVED.getStatusOrder(), queue
+                .getId()).size();
         if (orderInQueue < queue.getMaxQueueSize()) {
 
             Order order = orderMapper.toEntity(orderCreateDTO);
@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
                 int estimatedWaitingTime = orderService.getEstimatedWaitingTime(order1.getId());
                 order1.setEstimatedWaitingTime(estimatedWaitingTime);
 
-                orderRepository.save(order1);
+//                orderRepository.save(order1);
             }
             OrderResponseDTO orderResponseDTO = this.orderMapper.toDTO(order);
             orderResponseDTO.setCustomerName(customer.getName());
@@ -186,7 +186,7 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(order);
 
             queueService.updateQueueDetails(order.getQueue().getId());
-        }
+        } else throw new RuntimeException("only Pending Order can Cancel");
         return new MessageResponse("Cancel done");
     }
 
@@ -208,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
 
                 customerRepository.save(customer);
             }
-        }
+        } else throw new RuntimeException("only Processing Order can Completed");
         return orderMapper.toDTO(order);
     }
 
@@ -225,7 +225,7 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(order);
 
             queueService.updateQueueDetails(order.getQueue().getId());
-        }
+        } else throw new RuntimeException("only Pending Order can Serve");
         return orderMapper.toDTO(order);
     }
 
