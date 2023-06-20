@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
             return user;
         }
-        throw new IllegalArgumentException("username is exist");
+        else throw new IllegalArgumentException("username is exist");
 
     }
 

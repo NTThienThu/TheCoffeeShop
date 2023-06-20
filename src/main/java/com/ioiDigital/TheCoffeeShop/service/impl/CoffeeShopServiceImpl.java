@@ -100,14 +100,14 @@ public class CoffeeShopServiceImpl implements CoffeeShopService {
 
     @Override
     public PaginationDTO findAllActive(int no, int limit) {
-        Page<CoffeeShopResponseDTO> page =coffeeShopRepository.findAllActive(PageRequest.of(no, limit)).map(item -> coffeeShopMapper.toDTO(item));
+        Page<CoffeeShopResponseDTO> page = coffeeShopRepository.findAllActive(PageRequest.of(no, limit)).map(item -> coffeeShopMapper.toDTO(item));
         return new PaginationDTO(page.getContent(), page.isFirst(), page.isLast(), page.getTotalPages(),
                 page.getTotalElements(), page.getSize(), page.getNumber());
     }
 
     @Override
     public PaginationDTO searchCoffeeShop(SearchCoffeeShopDTO searchCoffeeShopDTO, int no, int limit) {
-        Page<CoffeeShopResponseDTO> page = coffeeShopRepository.findAll(CoffeeShopSpecification.searchCoffeShopForCustomer(searchCoffeeShopDTO), PageRequest.of(no, limit))
+        Page<CoffeeShopResponseDTO> page = coffeeShopRepository.findAll(CoffeeShopSpecification.searchCoffeeShopForCustomer(searchCoffeeShopDTO), PageRequest.of(no, limit))
                 .map(item -> coffeeShopMapper.toDTO(item));
         return new PaginationDTO(page.getContent(), page.isFirst(), page.isLast(),
                 page.getTotalPages(),

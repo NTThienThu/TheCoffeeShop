@@ -20,7 +20,7 @@ public class QueueController {
 
     @PutMapping
     @PreAuthorize("hasAuthority('Admin')")
-    public ResponseEntity updateQueue(@RequestParam int maxSize) {
+    public ResponseEntity updateQueue(@RequestParam(value = "maxSize") int maxSize) {
         return new ResponseEntity<>(this.queueService.updateSizeOfQueue(maxSize), HttpStatus.CREATED);
     }
 

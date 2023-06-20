@@ -17,7 +17,7 @@ public class CoffeeShopSpecification implements Specification<CoffeeShop> {
         return null;
     }
 
-    public static Specification<CoffeeShop> searchCoffeShopForCustomer (SearchCoffeeShopDTO searchCoffeeShopDTO){
+    public static Specification<CoffeeShop> searchCoffeeShopForCustomer(SearchCoffeeShopDTO searchCoffeeShopDTO){
         return (root, query, cb) -> {
 
            List<Predicate> predicates = new ArrayList<>();

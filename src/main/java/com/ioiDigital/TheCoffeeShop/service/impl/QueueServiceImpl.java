@@ -42,6 +42,7 @@ public class QueueServiceImpl implements QueueService {
         Admin admin = adminService.getCurrentLogInAdmin();
         Queue queue = this.getQueueByShopId(admin.getCoffeeShop().getId());
         queue.setMaxQueueSize(maxSize);
+        queueRepository.save(queue);
         return null;
     }
 
